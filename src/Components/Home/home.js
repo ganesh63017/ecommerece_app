@@ -7,8 +7,7 @@ const Home = () => {
   const [data, setData] = useState([]);
   const [Range, setRange] = useState(5);
   const [carts, setCarts] = useState(0);
-  const dispatch = useDispatch();
-  const state = useSelector((state) => state);
+  const [activePage, setActive] = useState(1);
 
   useEffect(() => {
     getData();
@@ -19,15 +18,14 @@ const Home = () => {
   }, []);
 
   const getData = (range) => {
-    console.log(range);
+    // console.log(range);
     const Range = range === undefined ? 5 : range;
 
     axios
       .get("http://interviewapi.ngminds.com/api/getAllProducts")
       .then((res) => {
-        const filteredData = res.data.products.splice(0, Range);
+        const filteredData = res.data.products;
         setData(filteredData);
-        dispatch({ type: "setData", value: filteredData });
       })
       .catch((res) => {
         console.log(res);
@@ -94,6 +92,13 @@ const Home = () => {
   };
 
   // console.log(carts, "data");
+  let a = [];
+  for (let i = 1; i <= Math.ceil(data.length / Range); i++) {
+    a.push(i);
+  }
+
+  const as = data.slice((activePage - 1) * 5, 5 * activePage);
+  console.log(as, (activePage - 1) * 5, 5 * activePage);
 
   return (
     <div class="container">
@@ -111,9 +116,11 @@ const Home = () => {
             <li class="page-item">
               <a class="page-link">Previous</a>
             </li>
-            {data.map((each, index) => (
-              <li class="page-item active">
-                <a class="page-link">{index}</a>
+            {a.map((each, index) => (
+              <li class="page-item active" key={index}>
+                <a class="page-link" onClick={() => setActive(Number(each))}>
+                  {each}
+                </a>
               </li>
             ))}
             <li class="page-item">
@@ -138,47 +145,55 @@ const Home = () => {
       </div>
       <hr />
       <div class="row">
-        {data?.map((each, index) => {
-          let color;
-          if (index % 4 === 0) {
-            color = "bg-info";
-          } else if (index % 4 === 1) {
-            color = "bg-success";
-          } else if (index % 4 === 2) {
-            color = "bg-primary";
-          } else {
-            color = "bg-danger";
-          }
-          return (
-            <div
-              class="col-md-3"
-              key={each._id}
-              style={{ height: "60vh", padding: "20px" }}
-            >
-              <div class={color}>
-                <img
-                  src={`http://interviewapi.ngminds.com/${each.image}`}
-                  width="100"
-                  height="200"
-                  alt="logo"
-                />
-                <br></br> <p>{each.name}</p>
-                <p>
-                  <i class="fa fa-inr"></i>
-                  {each.price}
-                </p>
-                <button
-                  class="btn btn-warning"
-                  onClick={() =>
-                    setCardDetails(each.name, each._id, each.image, each.price)
-                  }
+        {data &&
+          data
+            .slice((activePage - 1) * Range, Range * activePage)
+            .map((each, index) => {
+              let color;
+              if (index % 4 === 0) {
+                color = "bg-info";
+              } else if (index % 4 === 1) {
+                color = "bg-success";
+              } else if (index % 4 === 2) {
+                color = "bg-primary";
+              } else {
+                color = "bg-danger";
+              }
+              return (
+                <div
+                  class="col-md-3"
+                  key={each._id}
+                  style={{ height: "60vh", padding: "20px" }}
                 >
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          );
-        })}
+                  <div class={color}>
+                    <img
+                      src={`http://interviewapi.ngminds.com/${each.image}`}
+                      width="100"
+                      height="200"
+                      alt="logo"
+                    />
+                    <br></br> <p>{each.name}</p>
+                    <p>
+                      <i class="fa fa-inr"></i>
+                      {each.price}
+                    </p>
+                    <button
+                      class="btn btn-warning"
+                      onClick={() =>
+                        setCardDetails(
+                          each.name,
+                          each._id,
+                          each.image,
+                          each.price
+                        )
+                      }
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
       </div>
       <hr />
     </div>
