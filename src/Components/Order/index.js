@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 const Order = () => {
@@ -16,8 +17,10 @@ const Order = () => {
   }, []);
 
   const history = useNavigate();
+  const dispatch = useDispatch();
 
   const ConfirmOrder = async () => {
+    dispatch({ type: "clearData" });
     const url = "http://interviewapi.ngminds.com/api/placeOrder";
     const objects = data.map((each) => ({
       productID: each.id,

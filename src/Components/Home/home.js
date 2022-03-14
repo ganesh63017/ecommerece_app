@@ -1,37 +1,38 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 const Home = () => {
   const [data, setData] = useState([]);
-  const [data1, setData1] = useState([]);
-  const [data3, setData3] = useState([]);
+  const [Range, setRange] = useState(5);
   const [carts, setCarts] = useState(0);
+  const dispatch = useDispatch();
+  const state = useSelector((state) => state);
 
   useEffect(() => {
+    getData();
+    const local = localStorage.getItem("obj", JSON.stringify([]));
+    if (local === null || local === undefined) {
+      localStorage.setItem("obj", JSON.stringify([]));
+    }
+  }, []);
+
+  const getData = (range) => {
+    console.log(range);
+    const Range = range === undefined ? 5 : range;
+
     axios
       .get("http://interviewapi.ngminds.com/api/getAllProducts")
       .then((res) => {
-        console.log(res.data.products);
-        setData([
-          res.data.products[0],
-          res.data.products[1],
-          res.data.products[2],
-          res.data.products[3],
-        ]);
-        setData1([
-          res.data.products[4],
-          res.data.products[5],
-          res.data.products[6],
-          res.data.products[7],
-        ]);
-        setData3([res.data.products[8]]);
+        const filteredData = res.data.products.splice(0, Range);
+        setData(filteredData);
+        dispatch({ type: "setData", value: filteredData });
       })
       .catch((res) => {
         console.log(res);
       });
-    localStorage.setItem("obj", JSON.stringify([]));
-  }, []);
+  };
 
   const setCardDetails = (name, id, image, price) => {
     const array = JSON.parse(localStorage.getItem("obj"));
@@ -65,6 +66,35 @@ const Home = () => {
     localStorage.setItem("cart", JSON.stringify(a.length));
   };
 
+  const sortCards = (e) => {
+    if (e.target.value === "high") {
+      const high = data.sort((a, b) => b.price - a.price);
+      const strHigh = JSON.stringify(high);
+      const parseHigh = JSON.parse(strHigh);
+      setData(parseHigh);
+      // console.log(high, "high");
+    } else if (e.target.value === "low") {
+      const low = data.sort((a, b) => a.price - b.price);
+      const strLow = JSON.stringify(low);
+      const parseLow = JSON.parse(strLow);
+      setData(parseLow);
+      // console.log(low, "low");
+    } else {
+      getData();
+    }
+  };
+
+  const sortCardsRange = (e) => {
+    setRange(Number(e.target.value));
+    getData(e.target.value);
+    // dispatch({ type: "value", value: state.number + Number(e.target.value) });
+    // const a = data.length / Range;
+    // console.log(a);
+    // console.log(Range);
+  };
+
+  // console.log(carts, "data");
+
   return (
     <div class="container">
       <h1>
@@ -75,15 +105,46 @@ const Home = () => {
           </Link>
         </span>
       </h1>
+      <div class="row pull-center">
+        <div class="col-sm-8">
+          <ul class="pagination">
+            <li class="page-item">
+              <a class="page-link">Previous</a>
+            </li>
+            {data.map((each, index) => (
+              <li class="page-item active">
+                <a class="page-link">{index}</a>
+              </li>
+            ))}
+            <li class="page-item">
+              <a class="page-link">Next</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div className="">
+        <select name="select" onChange={sortCards}>
+          <option value="default">Default</option>
+          <option value="high">High To Low</option>
+          <option value="low">Low To High</option>
+        </select>
+        <select name="s" onChange={sortCardsRange}>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="50">50</option>
+        </select>
+      </div>
       <hr />
       <div class="row">
         {data?.map((each, index) => {
           let color;
-          if (index === 0) {
+          if (index % 4 === 0) {
             color = "bg-info";
-          } else if (index === 1) {
+          } else if (index % 4 === 1) {
             color = "bg-success";
-          } else if (index === 2) {
+          } else if (index % 4 === 2) {
             color = "bg-primary";
           } else {
             color = "bg-danger";
@@ -120,93 +181,6 @@ const Home = () => {
         })}
       </div>
       <hr />
-      <div class="row">
-        {data1?.map((each, index) => {
-          let color;
-          if (index === 0) {
-            color = "bg-info";
-          } else if (index === 1) {
-            color = "bg-success";
-          } else if (index === 2) {
-            color = "bg-primary";
-          } else {
-            color = "bg-danger";
-          }
-          return (
-            <div
-              class="col-md-3"
-              key={each._id}
-              style={{ height: "60vh", padding: "20px" }}
-            >
-              <div class={color}>
-                <img
-                  src={`http://interviewapi.ngminds.com/${each.image}`}
-                  width="100"
-                  height="200"
-                  alt="logo"
-                />
-                <br></br> <p>{each.name}</p>
-                <p>
-                  <i class="fa fa-inr"></i>
-                  {each.price}
-                </p>
-                <button
-                  class="btn btn-warning"
-                  onClick={() =>
-                    setCardDetails(each.name, each.id, each.image, each.price)
-                  }
-                >
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <hr />
-      <div class="row">
-        {data3?.map((each, index) => {
-          let color;
-          if (index === 0) {
-            color = "bg-info";
-          } else if (index === 1) {
-            color = "bg-success";
-          } else if (index === 2) {
-            color = "bg-primary";
-          } else {
-            color = "bg-danger";
-          }
-          return (
-            <div
-              class="col-md-3"
-              key={each._id}
-              style={{ height: "60vh", padding: "20px" }}
-            >
-              <div class={color}>
-                <img
-                  src={`http://interviewapi.ngminds.com/${each.image}`}
-                  width="100"
-                  height="200"
-                  alt="logo"
-                />
-                <br></br> <p>{each.name}</p>
-                <p>
-                  <i class="fa fa-inr"></i>
-                  {each.price}
-                </p>
-                <button
-                  class="btn btn-warning"
-                  onClick={() =>
-                    setCardDetails(each.name, each.id, each.image, each.price)
-                  }
-                >
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 };
